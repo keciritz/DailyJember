@@ -1,362 +1,258 @@
-<!--
-Portal Berita Harian Jember
-Single-file template (index.html) — lengkap dengan HTML, CSS, dan JS
-Warna utama: abu-abu biru tua (dark blue-grey) dan kuning tua (mustard)
-Cara pakai: simpan sebagai `index.html` dan buka di browser. Untuk versi repo, buat folder /assets untuk gambar, atau ganti src gambar.
-
-Fitur dalam template:
-- Header + navigasi responsif
-- Hero spotlight berita
-- Grid artikel (dimuat dari array `posts` di bagian JS)
-- Halaman artikel sederhana (menggunakan hash routing / fragment -> #article-{id})
-- Search & kategori filter
-- Card modern, tipografi dan warna "kekinian"
-- Komentar tentang bagaimana convert ke repo Git / tambah backend
--->
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Portal Berita Harian Jember</title>
-  <meta name="description" content="Portal Berita Harian Jember — berita lokal, update, dan pengumuman" />
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
   <style>
-    /* ------------------ THEME COLORS ------------------ */
-    :root{
-      --bg: #f6f7f9; /* very light */
-      --card: #ffffff;
-      --muted: #9aa6b0;
-      --accent: #D4A017; /* kuning tua / mustard */
-      --primary: #24384a; /* abu abu biru tua (dark blue-grey) */
-      --accent-contrast: #111;
-      --shadow: 0 6px 18px rgba(36,56,74,0.08);
-      --radius: 12px;
-      --max-width: 1100px;
-      --glass: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.5));
-      --mono: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    :root {
+      --biru-tua: #0a2342;
+      --abu: #f5f5f5;
+      --kuning-tua: #f4b400;
+      --putih: #ffffff;
+      --abu-tua: #d1d1d1;
     }
 
-    /* ------------------ BASE ------------------ */
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      font-family: var(--mono);
-      margin:0;
-      background: linear-gradient(180deg, #f3f5f7 0%, var(--bg) 100%);
-      color: #0b1220;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      line-height:1.5;
-      padding:28px 16px;
-      display:flex;
-      justify-content:center;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--abu);
+      margin: 0;
+      color: #222;
     }
 
-    .container{
-      width:100%;
-      max-width:var(--max-width);
+    header {
+      background-color: var(--biru-tua);
+      color: var(--putih);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    /* ------------------ HEADER ------------------ */
-    header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom:20px;
+    header h1 {
+      font-size: 1.5rem;
+      margin: 0;
+      color: var(--kuning-tua);
     }
 
-    .brand{
-      display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--primary);
-    }
-    .logo{
-      width:56px;height:56px;border-radius:10px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;box-shadow:var(--shadow)
-    }
-    .brand h1{font-size:18px;margin:0}
-    .brand p{margin:0;color:var(--muted);font-size:12px}
-
-    nav{display:flex;gap:12px;align-items:center}
-    .nav-link{padding:8px 12px;border-radius:10px;text-decoration:none;color:var(--primary);font-weight:600}
-    .nav-link:hover{background:rgba(36,56,74,0.06)}
-
-    .actions{display:flex;gap:8px;align-items:center}
-    .btn{background:var(--primary);color:#fff;padding:9px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
-    .btn.secondary{background:transparent;color:var(--primary);border:1px solid rgba(36,56,74,0.08)}
-
-    /* ------------------ SEARCH BAR ------------------ */
-    .searchbar{display:flex;gap:8px;align-items:center;background:var(--card);padding:10px;border-radius:14px;box-shadow:var(--shadow);width:100%;}
-    .searchbar input{border:0;outline:none;font-size:14px;background:transparent;flex:1}
-    .searchbar .chip{background:var(--accent);color:var(--accent-contrast);padding:6px 10px;border-radius:10px;font-weight:700}
-
-    /* ------------------ HERO ------------------ */
-    .hero{display:grid;grid-template-columns:1fr 360px;gap:18px;margin:18px 0}
-    .hero-main{background:linear-gradient(180deg, rgba(36,56,74,0.06), rgba(36,56,74,0.02));padding:18px;border-radius:16px}
-    .hero-main img{width:100%;height:260px;object-fit:cover;border-radius:10px}
-    .hero-main h2{margin:12px 0 6px}
-    .hero-meta{color:var(--muted);font-size:13px}
-
-    .hero-side{display:flex;flex-direction:column;gap:12px}
-    .mini-card{background:var(--card);padding:12px;border-radius:12px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:center}
-    .mini-card img{width:92px;height:68px;object-fit:cover;border-radius:8px}
-
-    /* ------------------ LAYOUT ------------------ */
-    .layout{display:grid;grid-template-columns: 1fr 320px;gap:22px;margin-top:8px}
-
-    /* ------------------ ARTICLE GRID ------------------ */
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
-    .card{background:var(--card);padding:14px;border-radius:14px;box-shadow:var(--shadow);display:flex;gap:12px}
-    .card img{width:180px;height:120px;object-fit:cover;border-radius:10px}
-    .card h3{margin:0;font-size:16px}
-    .card p{margin:6px 0;color:var(--muted);font-size:13px}
-
-    /* ------------------ SIDEBAR ------------------ */
-    .sidebar{display:flex;flex-direction:column;gap:12px}
-    .widget{background:var(--card);padding:14px;border-radius:12px;box-shadow:var(--shadow)}
-    .tag{display:inline-block;padding:6px 10px;border-radius:999px;background:#f1f2f4;margin:6px 6px 0 0;font-size:13px;color:var(--primary)}
-
-    /* ------------------ ARTICLE VIEW ------------------ */
-    .article-page{background:var(--card);padding:18px;border-radius:14px;box-shadow:var(--shadow);}
-    .article-page img{width:100%;height:360px;object-fit:cover;border-radius:10px}
-
-    /* ------------------ FOOTER ------------------ */
-    footer{margin-top:28px;padding:18px;border-radius:12px;text-align:center;color:var(--muted)}
-
-    /* ------------------ RESPONSIVE ------------------ */
-    @media (max-width:900px){
-      .hero{grid-template-columns:1fr;}
-      .layout{grid-template-columns:1fr}
-      .grid{grid-template-columns:1fr}
-      .hero-main img{height:200px}
+    nav a {
+      color: var(--putih);
+      text-decoration: none;
+      margin-left: 1rem;
+      font-weight: bold;
     }
 
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    .hero {
+      background-color: var(--biru-tua);
+      color: var(--putih);
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+
+    .hero h2 {
+      margin: 0;
+      color: var(--kuning-tua);
+      font-size: 2rem;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1000px;
+      margin: 2rem auto;
+    }
+
+    .search-bar {
+      margin-bottom: 1.5rem;
+      text-align: right;
+    }
+
+    .search-bar input {
+      padding: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid var(--abu-tua);
+      width: 250px;
+    }
+
+    .posts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .post {
+      background: var(--putih);
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+
+    .post:hover {
+      transform: translateY(-4px);
+    }
+
+    .post img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .post-content {
+      padding: 1rem;
+    }
+
+    .post-content h3 {
+      margin-top: 0;
+      color: var(--biru-tua);
+    }
+
+    .post-meta {
+      font-size: 0.8rem;
+      color: #777;
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      background-color: var(--biru-tua);
+      color: var(--putih);
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      margin-top: 2rem;
+    }
+
+    .single-post {
+      background: var(--putih);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .single-post h2 {
+      color: var(--biru-tua);
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-bottom: 1rem;
+      color: var(--biru-tua);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .back-btn:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <a class="brand" href="#home" onclick="routeTo('#home')">
-        <div class="logo">JB</div>
-        <div>
-          <h1>Kata Jember</h1>
-          <p>Portal Berita Harian — Jember</p>
-        </div>
-      </a>
+  <header>
+    <h1>Berita Harian Jember</h1>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#kategori">Kategori</a>
+      <a href="#tentang">Tentang</a>
+    </nav>
+  </header>
 
-      <nav>
-        <a class="nav-link" href="#home" onclick="routeTo('#home')">Home</a>
-        <a class="nav-link" href="#kategori" onclick="routeTo('#kategori')">Kategori</a>
-        <a class="nav-link" href="#arsip" onclick="routeTo('#arsip')">Arsip</a>
-        <button class="btn" onclick="routeTo('#submit')">Kirim Berita</button>
-      </nav>
-    </header>
+  <section class="hero">
+    <h2>Portal Berita Terkini Kabupaten Jember</h2>
+    <p>Informasi terpercaya setiap hari</p>
+  </section>
 
-    <section class="searchbar">
-      <input id="searchInput" placeholder="Cari berita, lokasi, atau nama..." oninput="renderPosts()" />
-      <div class="chip">Trending</div>
-    </section>
+  <main class="container" id="main-content">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Cari berita..." />
+    </div>
+    <div class="posts" id="posts"></div>
+  </main>
 
-    <main>
-      <section class="hero" id="home">
-        <div class="hero-main">
-          <img id="heroImage" src="https://scontent.cdninstagram.com/v/t51.82787-15/573540931_17867852265469616_3106998480000857251_n.jpg?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder" alt="Hero" />
-          <h2 id="heroTitle">Berita Utama: Judul Artikel Terbaru</h2>
-          <div class="hero-meta" id="heroMeta">20 Oktober 2025 • Liputan Khusus • Oleh Tim Berita</div>
-          <p id="heroExcerpt">Ringkasan singkat berita utama agar pembaca tahu inti beritanya. Klik untuk baca lebih lanjut.</p>
-        </div>
-        <aside class="hero-side">
-          <div class="mini-card" id="mini1"><img src="https://scontent.cdninstagram.com/v/t51.82787-15/573540931_17867852265469616_3106998480000857251_n.jpg?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder" alt="mini"><div><strong>Judul Pendek</strong><div style="font-size:13px;color:var(--muted)">10 menit lalu</div></div></div>
-          <div class="mini-card" id="mini2"><img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder" alt="mini"><div><strong>Laporan Lapangan</strong><div style="font-size:13px;color:var(--muted)">1 jam lalu</div></div></div>
-          <div class="mini-card" id="mini3"><img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder" alt="mini"><div><strong>Pengumuman</strong><div style="font-size:13px;color:var(--muted)">Hari ini</div></div></div>
-        </aside>
-      </section>
-
-      <div class="layout">
-        <section>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <h3>Berita Terbaru</h3>
-            <div style="color:var(--muted);font-size:13px">Menampilkan <span id="postsCount">0</span> artikel</div>
-          </div>
-
-          <div class="grid" id="postsGrid">
-            <!-- cards injected by JS -->
-          </div>
-
-        </section>
-
-        <aside class="sidebar">
-          <div class="widget">
-            <h4>Topik Populer</h4>
-            <div id="tags">
-              <span class="tag" onclick="filterByTag('Pemerintahan')">Pemerintahan</span>
-              <span class="tag" onclick="filterByTag('Kecelakaan')">Kecelakaan</span>
-              <span class="tag" onclick="filterByTag('Pariwisata')">Pariwisata</span>
-              <span class="tag" onclick="filterByTag('Olahraga')">Olahraga</span>
-            </div>
-          </div>
-
-          <div class="widget">
-            <h4>Newsletter</h4>
-            <p style="color:var(--muted);font-size:13px">Dapatkan ringkasan harian ke email Anda.</p>
-            <div style="display:flex;gap:8px;margin-top:8px">
-              <input id="newsEmail" placeholder="email@contoh.com" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ececec;">
-              <button class="btn" onclick="subscribe()">Daftar</button>
-            </div>
-          </div>
-
-          <div class="widget">
-            <h4>Terkini</h4>
-            <div id="sideList"></div>
-          </div>
-        </aside>
-      </div>
-
-      <!-- article detail area (hash routing) -->
-      <div id="articleView" style="margin-top:18px;display:none"></div>
-
-    </main>
-
-    <footer>
-      &copy; <span id="year"></span> Portal Berita Harian Jember — dibuat dengan ♥
-    </footer>
-  </div>
+  <footer>
+    &copy; <span id="year"></span> Berita Harian Jember. Semua Hak Dilindungi.
+  </footer>
 
   <script>
-    // ------------------ Sample posts data ------------------
-    const posts = [
-      {
-        id: 'p1',
-        title: 'Polantas Menyapa — Samsat Teratai Jember',
-        excerpt: 'Kelengkapan administrasi kendaraan bukan hanya kewajiban, tapi juga bentuk tanggung jawab kita di jalan..',
-        content: '<p>Melalui program “Polantas Menyapa”, Satlantas Polres Jember hadir memberikan edukasi dan membantu masyarakat memahami pentingnya tertib administrasi. 🚔.</p>',
-        image: 'https://scontent.cdninstagram.com/v/t51.82787-15/573540931_17867852265469616_3106998480000857251_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=108&ig_cache_key=Mzc1MzgzNTkzMzI2ODY5NTE2Ng%3D%3D.3-ccb1-7&ccb=1-7&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0Mzl4MTgwMy5zZHIuQzMifQ%3D%3D&_nc_ohc=sHk_UcamLCgQ7kNvwH_rMEc&_nc_oc=AdkRtc_Usr3tKdP1SFGBrSYogSZ4Yw3yszXepEUdLfuhBKfhBmp_ovKIFMNkRejXYic&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.cdninstagram.com&_nc_gid=KvohO-39POhDDJ0F_UUQXA&oh=00_AffZSBfa9CJx0wt0mvdkhq46I0HzYEoiYiTLgQir7Fpdyg&oe=69078089?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder',
-        category: 'Kecelakaan', author: 'Admin', date: '2025-10-28', read: '2 menit', views: 128
-      },
-      {
-        id: 'p2',
-        title: 'Festival Kopi Jember Dibuka — Ribuan Pengunjung Hadir',
-        excerpt: 'Pembukaan festival kopi menarik perhatian wisatawan lokal dan nasional.',
-        content: '<p>Festival Kopi Jember menampilkan puluhan stan dan sesi cicip kopi.</p>',
-        image: 'https://images.unsplash.com/photo-1517685352821-92cf88aee5a5?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder',
-        category: 'Pariwisata', author: 'Rizal', date: '2025-10-25', read: '3 menit', views: 542
-      },
-      {
-        id: 'p3',
-        title: 'Pemerintah Kabupaten Rilis Program Bus Wisata Gratis',
-        excerpt: 'Program bus gratis untuk rute pariwisata mulai berlaku bulan depan.',
-        content: '<p>Detail rute dan syarat penggunaan Bus Cinta Kabupaten Jember.</p>',
-        image: 'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder',
-        category: 'Pemerintahan', author: 'Nina', date: '2025-10-20', read: '4 menit', views: 321
+    function byId(id){return document.getElementById(id);}
+    let posts = [];
+
+    async function loadPostsFromSheet() {
+ const sheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSyHcmOsy7_d5LMytgf4UHnmsWTABPfvPhHK7w3_HD7B1IpsWHC8D-3v9jW_L9XYAZF3sNLikKK7MQS/pub?output=csv';
+      try {
+        const res = await fetch(sheetURL);
+        const csv = await res.text();
+        const lines = csv.split('\n').slice(1).filter(l => l.trim().length);
+        posts = lines.map(line => {
+          const parts = line.split(',');
+          const [id, title, date, category, excerpt, content, image, author] = parts;
+          return {
+            id: id?.trim(),
+            title: title?.trim(),
+            date: date?.trim(),
+            category: category?.trim(),
+            excerpt: excerpt?.trim(),
+            content: content?.trim(),
+            image: image?.trim(),
+            author: author?.trim(),
+            read: '3 menit',
+            views: 0
+          };
+        });
+        renderPosts(posts);
+      } catch (err) {
+        console.error('Gagal memuat data:', err);
+        byId('posts').innerHTML = '<p>Gagal memuat berita dari Google Sheet.</p>';
       }
-    ];
-
-    // ------------------ Utilities ------------------
-    function byId(id){return document.getElementById(id)}
-    function short(text, n=120){return text.length>n?text.slice(0,n-1)+'…':text}
-
-    // ------------------ Render Hero ------------------
-    function setHero(post){
-      if(!post) return;
-      byId('heroImage').src = post.image;
-      byId('heroTitle').textContent = post.title;
-      byId('heroMeta').textContent = `${post.date} • ${post.category} • Oleh ${post.author}`;
-      byId('heroExcerpt').textContent = post.excerpt;
     }
 
-    // ------------------ Render Posts Grid ------------------
-    function renderPosts(){
-      const q = byId('searchInput').value.toLowerCase().trim();
-      const grid = byId('postsGrid'); grid.innerHTML='';
-      const filtered = posts.filter(p => (p.title+p.excerpt+p.category+p.author).toLowerCase().includes(q));
-      byId('postsCount').textContent = filtered.length;
-      filtered.forEach(p=>{
-        const el = document.createElement('article'); el.className='card';
-        el.innerHTML = `
-          <img loading="lazy" src="${p.image}" alt="${p.title}">
-          <div>
-            <h3><a href="#article-${p.id}" onclick="routeTo('#article-${p.id}')">${p.title}</a></h3>
-            <p class="meta" style="color:var(--muted);font-size:13px">${p.date} • ${p.category} • ${p.read} • ${p.views} views</p>
-            <p>${short(p.excerpt,140)}</p>
+    function renderPosts(data) {
+      const container = byId('posts');
+      container.innerHTML = data.map(post => `
+        <div class="post" onclick="openPost('${post.id}')">
+          <img src="${post.image}" alt="${post.title}" />
+          <div class="post-content">
+            <h3>${post.title}</h3>
+            <div class="post-meta">${post.date} • ${post.category}</div>
+            <p>${post.excerpt}</p>
           </div>
-        `;
-        grid.appendChild(el);
-      });
-
-      // sidebar list
-      const side = byId('sideList'); side.innerHTML='';
-      const latest = posts.slice(0,5);
-      latest.forEach(p=>{
-        const d = document.createElement('div'); d.style.padding='8px 0'; d.innerHTML = `<a href="#article-${p.id}" onclick="routeTo('#article-${p.id}')" style='text-decoration:none;color:var(--primary)'>${p.title}</a><div style='color:var(--muted);font-size:12px'>${p.date}</div>`;
-        side.appendChild(d);
-      });
-
-      // set hero default
-      if(filtered.length>0) setHero(filtered[0]);
+        </div>
+      `).join('');
     }
 
-    function filterByTag(tag){
-      byId('searchInput').value = tag; renderPosts();
+    function openPost(id) {
+      const post = posts.find(p => p.id === id);
+      if (!post) return;
+      byId('main-content').innerHTML = `
+        <a class="back-btn" href="#" onclick="init();return false;">← Kembali</a>
+        <div class="single-post">
+          <h2>${post.title}</h2>
+          <div class="post-meta">${post.date} • ${post.category} • Penulis: ${post.author}</div>
+          <img src="${post.image}" alt="${post.title}" style="width:100%;max-height:400px;object-fit:cover;border-radius:10px;margin:1rem 0;">
+          <p>${post.content.replace(/\n/g, '<br>')}</p>
+        </div>
+      `;
     }
 
-    // ------------------ Simple hash routing for article view ------------------
-    function routeTo(hash){
-      location.hash = hash;
-      handleRoute();
-    }
-
-    function handleRoute(){
-      const h = location.hash || '#home';
-      const articleView = byId('articleView');
-      if(h.startsWith('#article-')){
-        const id = h.replace('#article-','');
-        const p = posts.find(x=>x.id===id);
-        if(p){
-          articleView.style.display='block';
-          articleView.innerHTML = `
-            <div class="article-page">
-              <a href="#home" onclick="routeTo('#home')" style="color:var(--muted);font-size:13px">← Kembali</a>
-              <h2 style="margin-top:8px">${p.title}</h2>
-              <div style="color:var(--muted);font-size:13px;margin-bottom:12px">${p.date} • ${p.category} • Oleh ${p.author} • ${p.read}</div>
-              <img src="${p.image}" alt="${p.title}">
-              <div style="margin-top:12px;line-height:1.7">${p.content}</div>
-            </div>
-          `;
-          // scroll to article
-          articleView.scrollIntoView({behavior:'smooth'});
-        }
-      } else {
-        articleView.style.display='none';
-        // we are home — ensure posts list visible
-        window.scrollTo({top:0,behavior:'smooth'});
-      }
-    }
-
-    // ------------------ Subscription (mock) ------------------
-    function subscribe(){
-      const email = byId('newsEmail').value.trim();
-      if(!email || !email.includes('@')) return alert('Masukkan email valid.');
-      alert('Terima kasih! Email ' + email + ' sudah terdaftar (contoh).');
-      byId('newsEmail').value='';
-    }
-
-    // ------------------ Init ------------------
-    (function init(){
+    function init() {
       byId('year').textContent = new Date().getFullYear();
-      renderPosts();
-      window.addEventListener('hashchange', handleRoute);
-      handleRoute();
-    })();
+      loadPostsFromSheet();
+      const search = byId('searchInput');
+      search.addEventListener('input', () => {
+        const val = search.value.toLowerCase();
+        const filtered = posts.filter(p => 
+          p.title.toLowerCase().includes(val) ||
+          p.category.toLowerCase().includes(val) ||
+          p.excerpt.toLowerCase().includes(val)
+        );
+        renderPosts(filtered);
+      });
+    }
 
-    // ------------------ Notes for developer ------------------
-    /*
-      Untuk membuat repo:
-      1. Buat folder project, tambahkan file index.html (ini), assets/ untuk gambar statis.
-      2. Kalau ingin CMS ringan: gunakan Netlify CMS, Forestry, atau Google Sheets + Apps Script.
-      3. Untuk deploy cepat tanpa coding: GitHub Pages, Netlify, Vercel.
-      4. Untuk menambahkan pagination atau API backend: sediakan endpoint /api/posts yang mengembalikan JSON.
-      5. Ingin saya pisahkan ke file CSS/JS terpisah? Saya bisa buatkan versi multi-file.
-    */
+    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
